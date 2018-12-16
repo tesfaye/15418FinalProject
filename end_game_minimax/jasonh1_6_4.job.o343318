@@ -1,9 +1,0 @@
-
-./chess: Killed
-
- Performance counter stats for './chess -d 6 -t 4':
-
-         197461983      cache-misses                                                
-
-     328.680910661 seconds time elapsed
-
