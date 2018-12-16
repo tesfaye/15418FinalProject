@@ -6,6 +6,9 @@ layout: default
 
 Welcome to our website for our 15-418 Final Project. We are planning on researching the performance of different parallel chess AI alogorithms. If you're interested, here is a link to our [project proposal](./project_proposal.pdf).
 
+[Final report](./15-418_Final_Project_Report.pdf)
+
+
 # TITLE
 ### AlphaChess
 ### Abel Tesfaye (atesfaye) and Jason Huang (jasonh1)
