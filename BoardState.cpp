@@ -30,11 +30,21 @@ void print_af(Piece **board) {
     }
 }
 
-BoardState::BoardState() {
+void print_bool(bool *board) {
+    for (int i = 0; i < BOARD_DIM; i++) {
+	for (int j = 0; j < BOARD_DIM; j++) {
+	    if (board[INDEX(i, j)]) cout << "|" << 1;
+	    else cout << "|" << 0;
+	}
+	cout << "|\n";
+    }
+}
+
+BoardState::BoardState(bool flag) {
     this->curr_player = 0;
     Piece **board = create_board();
-    this->players[0] = new Player(0, board);
-    this->players[1] = new Player(1, board);
+    this->players[0] = new Player(0, board, flag);
+    this->players[1] = new Player(1, board, flag);
     this->board = board;
 }
 
@@ -76,28 +86,27 @@ bool BoardState::check() {
 
     for (int i = 0; i < (other_player->pieces).size(); i++) {
         Piece *piece = other_player->pieces[i];
-        // cout << piece->piece << " " << piece->row << " " << piece->col << "\n";
         piece->put_on_check_board(board, check_board);
     }
 
     // an opponent piece can eat the king
     bool in_check = check_board[INDEX(player->king_row, player->king_col)];
 
-    // free the check board
-
     return in_check;
 }
 
-void BoardState::move_piece(int r1, int c1, int r2, int c2) {
+bool BoardState::move_piece(int r1, int c1, int r2, int c2) {
     Piece *piece = this->board[INDEX(r1, c1)];
     Piece *eaten = this->board[INDEX(r2, c2)];
+    Player *player = this->players[this->curr_player];
+    Piece *eaten_temp = NULL;
 
     // other player info
     int o_p = !(this->curr_player);
     Player *other_player = this->players[o_p];
 
     if (eaten != NULL) {
-        if (eaten->player == piece->player) return;
+        if (eaten->player == piece->player) return false;
         int index;
         for (int i = 0; i < (other_player->pieces).size(); i++) {
             if (eaten == other_player->pieces[i]) {
@@ -106,13 +115,36 @@ void BoardState::move_piece(int r1, int c1, int r2, int c2) {
             }
         }
 
+	eaten_temp = eaten->deepcopy();
         // remove it from the pieces vector of other player
         other_player->pieces.erase(other_player->pieces.begin() + index);
     }
 
+    // update king location if necessary
+    if (tolower(piece->piece) == 'k') {
+    	player->king_row = r2;
+    	player->king_col = c2;
+    }
+
     piece->move_on_board(this->board, r2, c2);
+    if (this->check()) {
+	cout << "illegal move!\n";
+	piece->move_on_board(this->board, r1, c1);
+	if (tolower(piece->piece) == 'k') {
+    	    player->king_row = r1;
+    	    player->king_col = c1;
+	}
+
+	if (eaten_temp != NULL) {
+	    other_player->pieces.push_back(eaten_temp);
+	    eaten_temp->put_on_board(this->board);
+	}
+
+	return false;
+    }
 
     this->curr_player = !(this->curr_player);
+    return true;
 }
 
 BoardState *BoardState::make_moves(int row, int col, int i) {
@@ -343,7 +375,7 @@ int BoardState::eval() {
     return value;
 }
 
-int BoardState::minimax(int depth, int alpha, int beta) {
+int BoardState::minimax(int depth) {
     if (depth == 0) return this->eval();
 
     // white player tries to maximize move
@@ -360,7 +392,7 @@ int BoardState::minimax(int depth, int alpha, int beta) {
 
         cilk_for (int i =0; i < all_moves.size(); i++) {
             BoardState *move = all_moves[i];
-            int eval = move->minimax(depth - 1, alpha, beta);
+            int eval = move->minimax(depth - 1);
             values[i] = eval;
         }
 
@@ -386,7 +418,7 @@ int BoardState::minimax(int depth, int alpha, int beta) {
         int *values = (int*) calloc(all_moves.size(), sizeof(int));
         cilk_for (int i =0; i < all_moves.size(); i++) {
             BoardState *move = all_moves[i];
-            int eval = move->minimax(depth - 1, alpha, beta);
+            int eval = move->minimax(depth - 1);
             values[i] = eval;
         }
 
@@ -435,7 +467,7 @@ BoardState *BoardState::mm(int depth, int alpha, int beta, BoardState **stuff) {
 
         for (int i = 0; i < all_moves.size(); i++) {
             BoardState *move = all_moves[i];
-            int eval = move->minimax(depth - 1, alpha, beta);
+            int eval = move->minimax(depth - 1);
             if (eval >= max_eval) {
                 max_eval = eval;
                 max_move = move->mm(depth - 1, alpha, beta, stuff);
@@ -456,7 +488,7 @@ BoardState *BoardState::mm(int depth, int alpha, int beta, BoardState **stuff) {
 
         for (int i = 0; i < all_moves.size(); i++) {
             BoardState *move = all_moves[i];
-            int eval = move->minimax(depth - 1, alpha, beta);
+            int eval = move->minimax(depth - 1);
             if (eval <= min_eval) {
                 min_eval = eval;
                 min_move = move->mm(depth - 1, alpha, beta, stuff);

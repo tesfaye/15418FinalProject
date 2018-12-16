@@ -14,7 +14,7 @@ public:
     Player *players[2];
     Piece **board;
 
-    BoardState();
+    BoardState(bool);
     BoardState(int, Player *, Player *, Piece **);
     ~BoardState();
     BoardState *deepcopy();
@@ -22,14 +22,14 @@ public:
     bool check();
     // bool checkmate();
 
-    void move_piece(int, int, int, int);
+    bool move_piece(int, int, int, int);
     vector<BoardState *> castle();
     BoardState *make_moves(int, int, int);
     BoardState *castle(int, int);
     vector<BoardState *> find_legal_moves();
 
     int eval();
-    int minimax(int, int, int);
+    int minimax(int);
     int negamax(int);
     BoardState *mm(int, int, int, BoardState **);
 };

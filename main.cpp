@@ -32,79 +32,70 @@ void print_board(Piece **board) {
 }
 
 int main(int argc, const char* argv[]) {
-    if(argc != 5) {
-        printf("Usage ./chess -d <depth> -t <cilk workers>\n");
+    BoardState *state;
+    if(argc != 5 && argc != 2) {
+        cout << "Usage ./chess -d <depth> -t <cilk workers>\n";
+	cout << "Interactive mode: ./chess -i\n";
         return 1;
     }
-    using namespace std::chrono;
-    typedef std::chrono::high_resolution_clock Clock;
-    typedef std::chrono::duration<double> dsec;
 
-    int workers = atoi(argv[4]);
-    if (0!= __cilkrts_set_param("nworkers",argv[4]))
-    {
-        printf("Failed to set worker count\n");
-        return 1;
+    if (argc == 5) {
+	state = new BoardState(true);
+	using namespace std::chrono;
+	typedef std::chrono::high_resolution_clock Clock;
+	typedef std::chrono::duration<double> dsec;
+
+	int workers = atoi(argv[4]);
+	if (0!= __cilkrts_set_param("nworkers",argv[4])) {
+            printf("Failed to set worker count\n");
+            return 1;
+	}
+	int depth = atoi(argv[2]);
+	printf("depth : %d\n", depth);
+	printf("workers : %d\n\n", workers);
+
+	auto compute_start = Clock::now();
+	// cout << "minimax " << state->minimax(depth) << "\n";
+	cout << "negamax " << state->negamax(depth) << "\n";
+	auto compute_time = duration_cast<dsec>(Clock::now() - compute_start).count();
+	printf("Computation Time: %lf.\n", compute_time);
     }
-    int depth = atoi(argv[2]);
-    printf("depth : %d\n", depth);
-    printf("workers : %d\n\n", workers);
 
-    BoardState *state = new BoardState();
+    else {
+	state = new BoardState(false);
+	print_board(state->board);
+	cout << "\n\n\n";
 
-    /*print_board(state->board);
+        while (true) {
+            int r1, c1, r2, c2;
+            char temp;
 
-    cout << "\n\n\n";
+            cout << "move> ";
+            cin >> r1 >> c1 >> r2 >> c2;
 
-    vector<BoardState *> moves = state->find_legal_moves();
+            cout << "\n\n\n";
 
-    for (int i = 0; i < moves.size(); i++) {
-        print_board(moves[i]->board);
-    }*/
+            bool valid = state->move_piece(r1, c1, r2, c2);
 
+            print_board(state->board);
+            cout << "\n\n\n";
 
-    auto compute_start = Clock::now();
-    // cout << "minimax " << state->minimax(depth, INT_MIN, INT_MAX) << "\n";
-    cout << "negamax " << state->negamax(depth, INT_MIN, INT_MAX) << "\n";
-    auto compute_time = duration_cast<dsec>(Clock::now() - compute_start).count();
-    printf("Computation Time: %lf.\n", compute_time);
-    /*BoardState **stuff = (BoardState **)malloc(depth * sizeof(BoardState*));
-    print_board(state->ab(depth, INT_MIN, INT_MAX, stuff)->board);
+            // other player makes a move
+            if (valid) {
+            	int depth = 4;
+	    	BoardState **stuff = new BoardState*[depth];
+            	state->mm(depth, INT_MIN, INT_MAX, stuff);
 
-    cout << "\n\n\n\n";
+            	BoardState *freed = state;
+            	state = stuff[depth - 1];
+            	delete freed;
+            	delete stuff;
 
-    for (int i = depth - 1; i >= 0; i--) {
-        print_board(stuff[i]->board);
-    }*/
-
-    /*while (true) {
-        int r1, c1, r2, c2;
-        char temp;
-        // string temp1, temp2, temp3;
-
-        cout << "move> ";
-        cin >> r1 >> c1 >> r2 >> c2;
-
-        cout << "\n\n\n";
-
-        state->move_piece(r1, c1, r2, c2);
-
-        print_board(state->board);
-        cout << "\n\n\n";
-
-        // other player makes a move
-        BoardState **stuff = (BoardState **)malloc(5 * sizeof(BoardState *));
-        state->ab(5, INT_MIN, INT_MAX, stuff);
-
-        BoardState *freed = state;
-        state = stuff[4];
-        free(freed);
-        free(stuff);
-
-        print_board(state->board);
-        // state->curr_player = !(state->curr_player);
-        cout << "\n\n\n";
-    }*/
+            	print_board(state->board);
+            	cout << "\n\n\n";
+	    }
+        }
+    }
 
     delete state;
 

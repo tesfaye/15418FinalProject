@@ -11,7 +11,7 @@ public:
     vector<Piece *> pieces;
 
     Player();
-    Player(int, Piece **);
+    Player(int, Piece **, bool);
     ~Player();
     void to_string();
     Player *deepcopy(Piece **);

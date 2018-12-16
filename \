@@ -1,8 +1,8 @@
 #/usr/bin/env bash
 # generate jobs in batch
 
-depths=(5) # The name of the input files
-workers=(16)
+depths=(4) # The name of the input files
+workers=(2)
 rm -f *.job
 
 
