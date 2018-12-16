@@ -1,0 +1,13 @@
+
+depth : 3
+workers : 1
+
+minimax 870
+Computation Time: 2.879199.
+
+ Performance counter stats for './chess -d 3 -t 1':
+
+            535885      cache-misses                                                
+
+       2.902454023 seconds time elapsed
+

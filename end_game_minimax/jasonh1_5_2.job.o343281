@@ -1,0 +1,13 @@
+
+depth : 5
+workers : 2
+
+30
+Computation Time: 61.589365.
+
+ Performance counter stats for './chess -d 5 -t 2':
+
+          67795813      cache-misses                                                
+
+      62.935744739 seconds time elapsed
+
